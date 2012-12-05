@@ -1,4 +1,4 @@
 lou
 ===
 
-Simple syncing to your personal cloud.
+Simple syncing to your remote machine.
