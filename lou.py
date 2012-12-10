@@ -42,7 +42,7 @@ def list_remote_directories():
 
 
 def sync(source, destination):
-    cmd = "rsync -ar %(source)s %(dest)s" % {'source': source, 'dest': destination}
+    cmd = "rsync -az %(source)s %(dest)s" % {'source': source, 'dest': destination}
 
     try:
         out = run_remote_command(cmd)
@@ -54,17 +54,18 @@ def sync_pull(directory=None):
     """
     Pull remote files to local directory.
     """
+    # otherwise pull from the passed directory
+    if directory:
+        dir = "%(host)s:%(root)s/%(directory)s" % {'host': HOST, 'root': ROOT_DIRECTORY, 'directory': directory}
+        sync(dir + '/.', '.')
+        return
 
     # first try to pull from .lou file
     dir = read_lou_file()
     if dir:
         sync(dir + '/.', '.')
-
-    # otherwise pull from the passed directory
-    elif directory:
-        dir = "%(host)s:%(root)s/%(directory)" % {'host': HOST, 'root': ROOT_DIRECTORY, 'directory': directory}
-        sync(dir + '/.', '.')
-
+    else:
+		print 'Not a Lou directory. Run `lou new remote_dir_name` to create or `lou pull remote_dir_name` to sync.'
 
 def sync_push():
     """
@@ -85,8 +86,7 @@ def read_lou_file():
         file = open(LOU_FILE)
         return file.readline()
     except IOError:
-        print 'Not a Lou directory. Run `lou new remote_directory` to create a remote directory.'
-    
+        return None 
 
 def print_help():
     print """Options
@@ -110,7 +110,7 @@ if __name__ == '__main__':
         elif args[0] == 'push':
             sync_push()
         elif args[0] == 'pull':
-            sync_pull(args[1] if 1 in args else None)
+            sync_pull(args[1] if len(args) > 1 else None)
         else:
             print args
 
